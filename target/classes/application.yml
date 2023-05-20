@@ -1,7 +1,9 @@
-kafka:
-  bootstrapServers: http://kafka-service:9092
-  consumer:
-    group-id: waya
-    key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-    value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-    auto-offset-reset: earliest
+
+spring:
+  kafka:
+    bootstrap-servers: http://kafka-service:9092
+    consumer:
+      group-id: waya
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest

@@ -1,7 +1,6 @@
 package com.wayapay.xerointegration.kafka;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,19 +16,19 @@ import java.util.Map;
 @Configuration
 public class KafkaConsumerConfig {
 
-    @Value("${kafka.bootstrapServers}")
+    @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
-    @Value("${kafka.consumer.group-id}")
+    @Value("${spring.kafka.consumer.group-id}")
     private String kafkaGroupId;
 
-    @Value("${kafka.consumer.key-deserializer}")
+    @Value("${spring.kafka.consumer.key-deserializer}")
     private String keyDeserializer;
 
-    @Value("${kafka.consumer.value-deserializer}")
+    @Value("${spring.kafka.consumer.value-deserializer}")
     private String valueDeserializer;
 
-    @Value("${kafka.consumer.auto-offset-reset}")
+    @Value("${spring.kafka.consumer.auto-offset-reset}")
     private String autoReset;
 
 
