@@ -75,10 +75,9 @@ public class XeroIntegrationServiceImpl implements XeroIntegrationService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        headers.set("Authorization", "token to be gotten from xero");
+        headers.set("Authorization", "token to be gotten from xero"); // TODO: 21/05/2023 get token for post to Xero
 
         XeroUploadRequest xeroUploadRequest = createXeroUploadPayload(wayaTransactionResponse);
-        log.info("xero upload request ----->>>> {}", xeroUploadRequest);
 
         HttpEntity<XeroUploadRequest> entity = new HttpEntity<>(xeroUploadRequest, headers);
         ResponseEntity<String> result = restTemplate.postForEntity(uri, entity, String.class);
@@ -90,18 +89,23 @@ public class XeroIntegrationServiceImpl implements XeroIntegrationService {
 
     private XeroUploadRequest createXeroUploadPayload(WayaTransactionResponse wayaTransactionResponse) {
         List<LineItems> lineItemsList = new ArrayList<>();
+        List<Tracking> trackingList = new ArrayList<>();
+
+        Tracking tracking = Tracking.builder().Name("Activity/Workstream").Option("Website management").build();
+        trackingList.add(tracking);
 
         LineItems lineItem = LineItems.builder().Description(wayaTransactionResponse.getData().tranNarrate)
                 .AccountCode(String.valueOf(wayaTransactionResponse.getData().relatedTransId))
-                .UnitAmount(String.valueOf(wayaTransactionResponse.getData().tranAmount)).build();
+                .UnitAmount(String.valueOf(wayaTransactionResponse.getData().tranAmount))
+                .Tracking(trackingList).build();
         lineItemsList.add(lineItem);
         Contacts contacts = Contacts.builder().ContactID(wayaTransactionResponse.getData().tranId).build();
         BankAccount bankAccount = BankAccount.builder().Code(wayaTransactionResponse.getData().tranGL).build();
 
-
         XeroUploadRequest uploadRequest = XeroUploadRequest.builder().Type("RECEIVE-PREPAYMENT").Contact(contacts)
                 .BankAccount(bankAccount).LineAmountTypes("Inclusive").LineItems(lineItemsList)
                 .Url("http://www.accounting20.com").build();
+        log.info("xero upload request ----->>>> {}", uploadRequest);
 
         return uploadRequest;
     }

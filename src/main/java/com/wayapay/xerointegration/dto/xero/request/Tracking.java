@@ -4,16 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.List;
-
 @Data
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class LineItems {
+public class Tracking {
 
-    private String Description;
-    private String Quantity;
-    private String UnitAmount;
-    private String AccountCode;
-    private List<Tracking> Tracking;
+    public String Name;
+    public String Option;
 }
