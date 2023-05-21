@@ -46,4 +46,5 @@ public class AppConfig {
         messageSource.setCacheSeconds(0);
         return messageSource;
     }
+
 }

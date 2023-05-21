@@ -1,12 +1,16 @@
 package com.wayapay.xerointegration.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import com.wayapay.xerointegration.dto.response.XeroBankTransactionResponseDTO;
-import com.wayapay.xerointegration.payload.request.XeroBankTransactionRequestPayload;
-import com.wayapay.xerointegration.payload.response.XeroBankTransactionResponsePayload;
-import com.wayapay.xerointegration.payload.response.XeroSingleBankTransactionResponsePayload;
-import com.wayapay.xerointegration.pojos.Param;
-import com.wayapay.xerointegration.pojos.XeroBankTransaction;
+import com.wayapay.xerointegration.dto.waya.request.WayaTransactionRequest;
+import com.wayapay.xerointegration.dto.waya.response.WayaTransactionResponse;
+import com.wayapay.xerointegration.dto.xero.response.XeroBankTransactionResponseDTO;
+import com.wayapay.xerointegration.dto.xero.request.XeroBankTransactionRequestPayload;
+import com.wayapay.xerointegration.dto.xero.response.XeroBankTransactionResponsePayload;
+import com.wayapay.xerointegration.dto.xero.response.XeroSingleBankTransactionResponsePayload;
+import com.wayapay.xerointegration.dto.xero.request.Param;
+import com.wayapay.xerointegration.dto.xero.request.XeroBankTransaction;
 import com.wayapay.xerointegration.service.GenericService;
 import com.wayapay.xerointegration.service.XeroIntegrationService;
 import lombok.NonNull;
@@ -14,10 +18,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
@@ -34,6 +39,12 @@ public class XeroIntegrationServiceImpl implements XeroIntegrationService {
     @Value("${xero.fetch.transactions}")
     private String fetchTransactions;
 
+    @Value("${waya.transaction}")
+    private String wayaTransaction;
+
+    @Value("${waya.token}")
+    private String wayaToken;
+
     @Autowired
     private GenericService genericService;
 
@@ -45,14 +56,35 @@ public class XeroIntegrationServiceImpl implements XeroIntegrationService {
     private static final Gson JSON = new Gson();
 
     @Override
-    public void uploadTransactions(XeroBankTransaction xeroBankTransaction) throws URISyntaxException {
-        String url = uploadTransaction;
-        URI uri = new URI(url);
+    public WayaTransactionResponse getTransactionFromWaya(WayaTransactionRequest wayaTransactionRequest) throws URISyntaxException, IOException {
+        String url = wayaTransaction+wayaTransactionRequest.getTransactionId();
 
-        ResponseEntity<String> response = restTemplate.postForEntity(uri, xeroBankTransaction, String.class);
-        log.info("response code --> {}", response.getStatusCode().value());
-        log.info("response from log ----->>> {}", response);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", wayaToken);
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+        ResponseEntity<String> result = restTemplate.exchange(url,HttpMethod.GET, requestEntity, String.class);
 
+        WayaTransactionResponse response = new ObjectMapper().readValue(result.getBody(), WayaTransactionResponse.class);
+        log.info("response after mapping ------>>> {}", response);
+        uploadToXero(response);
+        return response;
+    }
+
+    public void uploadToXero(WayaTransactionResponse wayaTransactionResponse) throws URISyntaxException, JsonProcessingException {
+        String xeroUpload = uploadTransaction;
+        URI uri = new URI(xeroUpload);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.set("Authorization", "token to be gotten from xero");
+
+        HttpEntity<WayaTransactionResponse> entity = new HttpEntity<>(wayaTransactionResponse, headers);
+        ResponseEntity<String> result = restTemplate.postForEntity(uri, entity, String.class);
+        log.info("response code is -----> {} and response body is ------->>> {}", result.getStatusCode().value(), result.getBody());
+
+        XeroBankTransactionResponsePayload responsePayload = new ObjectMapper().readValue(result.getBody(), XeroBankTransactionResponsePayload.class);
+        log.info("response payload --------->>>>> {}", responsePayload);
     }
 
     @Override

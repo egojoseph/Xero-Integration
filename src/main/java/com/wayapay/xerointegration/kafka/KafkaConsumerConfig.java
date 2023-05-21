@@ -1,6 +1,9 @@
 package com.wayapay.xerointegration.kafka;
 
+import com.google.gson.Gson;
+import com.wayapay.xerointegration.service.XeroIntegrationService;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,8 +33,6 @@ public class KafkaConsumerConfig {
 
     @Value("${spring.kafka.consumer.auto-offset-reset}")
     private String autoReset;
-
-
 
     public Map<String, Object> consumerConfig() {
         Map<String, Object> props = new HashMap<>();

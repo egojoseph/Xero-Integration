@@ -2,8 +2,8 @@ package com.wayapay.xerointegration.service.impl;
 
 import com.google.gson.Gson;
 import com.wayapay.xerointegration.constant.Item;
-import com.wayapay.xerointegration.dto.request.AccessTokenRequestDTO;
-import com.wayapay.xerointegration.dto.response.AccessTokenResponseDTO;
+import com.wayapay.xerointegration.dto.xero.request.AccessTokenRequestDTO;
+import com.wayapay.xerointegration.dto.xero.response.AccessTokenResponseDTO;
 import com.wayapay.xerointegration.service.GenericService;
 import com.wayapay.xerointegration.storage.ZooItemKeeper;
 import kong.unirest.*;
