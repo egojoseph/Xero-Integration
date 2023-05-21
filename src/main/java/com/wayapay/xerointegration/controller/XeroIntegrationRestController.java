@@ -25,7 +25,7 @@ public class XeroIntegrationRestController
     private static final Gson JSON = new Gson();
 
 
-    @PostMapping("/bank-transaction/single")
+    @GetMapping("/bank-transaction/single")
     public ResponseEntity<XeroSingleBankTransactionResponsePayload> handleGetBankTransactionRequest(@RequestParam("bankTransactionId") String bankTransactionId){
         XeroSingleBankTransactionResponsePayload responsePayload = xeroIntegrationService.getSingleBankTransaction(bankTransactionId);
         return ResponseEntity.ok(responsePayload);
