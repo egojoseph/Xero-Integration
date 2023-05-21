@@ -5,12 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.wayapay.xerointegration.dto.waya.request.WayaTransactionRequest;
 import com.wayapay.xerointegration.dto.waya.response.WayaTransactionResponse;
+import com.wayapay.xerointegration.dto.xero.request.*;
 import com.wayapay.xerointegration.dto.xero.response.XeroBankTransactionResponseDTO;
-import com.wayapay.xerointegration.dto.xero.request.XeroBankTransactionRequestPayload;
 import com.wayapay.xerointegration.dto.xero.response.XeroBankTransactionResponsePayload;
 import com.wayapay.xerointegration.dto.xero.response.XeroSingleBankTransactionResponsePayload;
-import com.wayapay.xerointegration.dto.xero.request.Param;
-import com.wayapay.xerointegration.dto.xero.request.XeroBankTransaction;
 import com.wayapay.xerointegration.service.GenericService;
 import com.wayapay.xerointegration.service.XeroIntegrationService;
 import lombok.NonNull;
@@ -79,12 +77,33 @@ public class XeroIntegrationServiceImpl implements XeroIntegrationService {
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.set("Authorization", "token to be gotten from xero");
 
-        HttpEntity<WayaTransactionResponse> entity = new HttpEntity<>(wayaTransactionResponse, headers);
+        XeroUploadRequest xeroUploadRequest = createXeroUploadPayload(wayaTransactionResponse);
+        log.info("xero upload request ----->>>> {}", xeroUploadRequest);
+
+        HttpEntity<XeroUploadRequest> entity = new HttpEntity<>(xeroUploadRequest, headers);
         ResponseEntity<String> result = restTemplate.postForEntity(uri, entity, String.class);
         log.info("response code is -----> {} and response body is ------->>> {}", result.getStatusCode().value(), result.getBody());
 
         XeroBankTransactionResponsePayload responsePayload = new ObjectMapper().readValue(result.getBody(), XeroBankTransactionResponsePayload.class);
         log.info("response payload --------->>>>> {}", responsePayload);
+    }
+
+    private XeroUploadRequest createXeroUploadPayload(WayaTransactionResponse wayaTransactionResponse) {
+        List<LineItems> lineItemsList = new ArrayList<>();
+
+        LineItems lineItem = LineItems.builder().Description(wayaTransactionResponse.getData().tranNarrate)
+                .AccountCode(String.valueOf(wayaTransactionResponse.getData().relatedTransId))
+                .UnitAmount(String.valueOf(wayaTransactionResponse.getData().tranAmount)).build();
+        lineItemsList.add(lineItem);
+        Contacts contacts = Contacts.builder().ContactID(wayaTransactionResponse.getData().tranId).build();
+        BankAccount bankAccount = BankAccount.builder().Code(wayaTransactionResponse.getData().tranGL).build();
+
+
+        XeroUploadRequest uploadRequest = XeroUploadRequest.builder().Type("RECEIVE-PREPAYMENT").Contact(contacts)
+                .BankAccount(bankAccount).LineAmountTypes("Inclusive").LineItems(lineItemsList)
+                .Url("http://www.accounting20.com").build();
+
+        return uploadRequest;
     }
 
     @Override
