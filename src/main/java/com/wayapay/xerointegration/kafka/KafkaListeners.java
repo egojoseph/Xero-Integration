@@ -1,6 +1,6 @@
 package com.wayapay.xerointegration.kafka;
 
-import com.wayapay.xerointegration.service.UploadService;
+import com.wayapay.xerointegration.service.XeroIntegrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 public class KafkaListeners {
 
     @Autowired
-    private UploadService uploadService;
+    private XeroIntegrationService uploadService;
 
     @KafkaListener(topics = "transactions", groupId = "waya" )
     void listener(Object data) {
