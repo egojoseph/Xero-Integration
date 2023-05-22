@@ -17,7 +17,21 @@ public class AccessTokenResponseDTO
     @SerializedName("expires_in")
     private long expiresIn;
 
+    private String expirationDateString;
+
+    private String safeExpirationDateString;
+
     @JsonProperty("token_type")
     @SerializedName("token_type")
     private String tokenType;
+
+    @SerializedName("id_token")
+    private String idToken;
+
+    @SerializedName("refresh_token")
+    private String refreshToken;
+
+    private String refreshTokenExpirationDateString;
+
+    private String refreshTokenSafeExpirationDateString;
 }

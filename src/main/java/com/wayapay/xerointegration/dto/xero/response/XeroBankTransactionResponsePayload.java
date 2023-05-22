@@ -12,5 +12,5 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class XeroBankTransactionResponsePayload extends WayaBankBaseResponsePayload
 {
-    private List<XeroBankTransaction> data;
+    XeroBankTransactionResponseData data;
 }

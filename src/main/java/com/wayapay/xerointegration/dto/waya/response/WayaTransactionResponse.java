@@ -13,4 +13,5 @@ public class WayaTransactionResponse {
     private int code;
     private String message;
     private TransactionData data;
+
 }

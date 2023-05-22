@@ -11,5 +11,8 @@ public class AccessTokenRequestDTO
     @SerializedName("grant_type")
     private String grantType;
 
-    private String scope;
+    private String code;
+
+    @SerializedName("redirect_uri")
+    private String redirectUri;
 }

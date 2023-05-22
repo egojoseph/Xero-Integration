@@ -58,9 +58,9 @@ public class GenericServiceImpl implements GenericService
 
             if(response != null){
                 responseJson = response.getBody();
-                log.info("HttpConnection Success: {} GET", responseJson);
+                log.info("HttpConnection Success: {}", responseJson);
             }else{
-                log.info("HttpConnection Service Unavailable GET: {}", "Third party service unavailable");
+                log.info("HttpConnection Service Unavailable : {}", "Third party service unavailable");
             }
         }catch (UnirestException ex){
             log.error("Internal Server error while performing HttpConnection GET: {}", ex.getMessage());
@@ -109,6 +109,34 @@ public class GenericServiceImpl implements GenericService
     }
 
     @Override
+    public String postForForm(String url, Map<String, Object> fields, Map<String, String> headers, Map<String, Object> params) {
+        String responseJson = null;
+        HttpResponse<String> response;
+        Unirest.config().verifySsl(false);
+        try{
+            MultipartBody postRequest = Unirest.post(url)
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .fields(fields);
+            if(headers != null)
+                postRequest = postRequest.headers(headers);
+            if(params != null)
+                postRequest = postRequest.queryString(params);
+            response = postRequest.asString();
+
+            if(response != null){
+                responseJson = response.getBody();
+                log.info("HttpConnection Success POST: {}", responseJson);
+            }else{
+                log.info("HttpConnection Service Unavailable POST: {}", "Third party service unavailable");
+            }
+        }catch (UnirestException ex){
+            log.error("Internal Server error while performing HttpConnection POST: {}", ex.getMessage());
+            ex.printStackTrace();
+        }
+        return responseJson;
+    }
+
+    @Override
     public String postForObject(String url, Object requestObject, Map<String, String> headers, Map<String, Object> params) {
         String requestJson = JSON.toJson(requestObject);
         return postForObject(url, requestJson, headers, params);
@@ -122,6 +150,9 @@ public class GenericServiceImpl implements GenericService
     @Override
     public String getXeroAuthAccessToken() {
         AccessTokenResponseDTO responseDTO = ZooItemKeeper.getItem(Item.XERO_AUTH_TOKEN);
+        if(responseDTO == null){
+            return exchangeWithXeroForAccessToken();
+        }
         long expireInMilliseconds = responseDTO.getExpiresIn();
         if(isTimeNotExpired(expireInMilliseconds)){
             return responseDTO.getAccessToken();
@@ -140,7 +171,7 @@ public class GenericServiceImpl implements GenericService
 
         AccessTokenRequestDTO requestDTO = new AccessTokenRequestDTO();
         requestDTO.setGrantType(xeroGrantType);
-        requestDTO.setScope(xeroScope);
+        requestDTO.setCode(xeroScope);
         String requestJson = JSON.toJson(requestDTO);
 
         String responseJson = this.postForObject(xeroTokenUrl, requestJson, headers, null);

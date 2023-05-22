@@ -1,7 +1,7 @@
 
 spring:
   kafka:
-    bootstrap-servers: http://kafka-service:9092
+    bootstrap-servers: http://localhost:9092  #http://kafka-service:9092
     consumer:
       group-id: waya
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -14,10 +14,17 @@ xero:
   fetch:
     transactions: https://api.xero.com/api.xro/2.0/BankTransactions
   token-url: https://identity.xero.com/connect/token
-  client-id: test-clientId
-  client-secret: test-clientSecret
-  grant-type: client_credentials
-  scope: offline_access
+  client-id: 6E65088E1C844314B2EBB25B35BF4E7E #BD70F172FA204D87B644066E1D1A13CE
+  client-secret: RvQv2bC4XRP6snUsSNgM_uCxnSLvcPvuq6v7QteXNoxF2qlT #_LxvEU0Bus3dvgH-xXEa2S6akn9JAOZ7MBVOKkTNuJZOMweF
+  grant-type: authorization_code
+  refresh-grant-type: refresh_token
+  scope: offline_access openid profile email accounting.transactions
+  redirect-uri: http://localhost:8080/xero/redirect
+  auth-url: https://login.xero.com/identity/connect/authorize
+  response-type: code
+  tenant-url: https://api.xero.com/connections
+
+
 
 waya:
   transaction: https://services.staging.wayabank.ng/temporal-service/api/v1/wallet/account/transactions/

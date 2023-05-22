@@ -6,10 +6,9 @@ import com.google.gson.Gson;
 import com.wayapay.xerointegration.dto.waya.request.WayaTransactionRequest;
 import com.wayapay.xerointegration.dto.waya.response.WayaTransactionResponse;
 import com.wayapay.xerointegration.dto.xero.request.*;
-import com.wayapay.xerointegration.dto.xero.response.XeroBankTransactionResponseDTO;
-import com.wayapay.xerointegration.dto.xero.response.XeroBankTransactionResponsePayload;
-import com.wayapay.xerointegration.dto.xero.response.XeroSingleBankTransactionResponsePayload;
+import com.wayapay.xerointegration.dto.xero.response.*;
 import com.wayapay.xerointegration.service.GenericService;
+import com.wayapay.xerointegration.service.XeroAuthorizationService;
 import com.wayapay.xerointegration.service.XeroIntegrationService;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -21,8 +20,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,6 +50,9 @@ public class XeroIntegrationServiceImpl implements XeroIntegrationService {
 
     @Autowired
     private MessageSource messageSource;
+
+    @Autowired
+    private XeroAuthorizationService authorizationService;
 
     private RestTemplate restTemplate;
 
@@ -122,11 +127,14 @@ public class XeroIntegrationServiceImpl implements XeroIntegrationService {
         String baseUrl;
         if(!filters.isEmpty()){
             baseUrl = fetchTransactions.concat("?where=");
-            StringJoiner stringJoiner = new StringJoiner("AND");
+            StringJoiner stringJoiner = new StringJoiner("&");
             filters.forEach(filter -> {
                 String paramName = filter.getParamName();
                 String paramValue = filter.getParamValue();
-                String filterQuery = paramName.concat("==").concat(paramValue);
+                String toEncodePart = "==".concat(" \""+ paramValue + "\"");
+
+                String filterQuery = null;
+                filterQuery = paramName.concat(URLEncoder.encode(toEncodePart, StandardCharsets.UTF_8));
                 stringJoiner.add(filterQuery);
             });
             baseUrl = baseUrl.concat(stringJoiner.toString());
@@ -150,23 +158,36 @@ public class XeroIntegrationServiceImpl implements XeroIntegrationService {
 
         log.info("Complete Bank transactions query url: {}", completeQuery);
 
-        String responseJsonGet = genericService.getForObject(completeQuery, getXeroAuthHeader());
+        InternalAccessTokenResponse accessTokenResponse = authorizationService.getXeroAccessTokenWithRefresh();
+        if(!accessTokenResponse.isPresent()){
+            responsePayload.setStatus(false);
+            responsePayload.setMessage("Please authorize the application before accessing any API");
+            responsePayload.setTimeStamp(LocalDateTime.now().toString());
+            return responsePayload;
+        }
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Authorization", "Bearer " + accessTokenResponse.getAccessToken());
+        headers.put("Xero-tenant-id", authorizationService.getCurrentTenantConnection().getTenantId());
+
+        log.info("Request Headers: {}", headers);
+        String responseJsonGet = genericService.getForObject(completeQuery, headers);
 
         log.info("ResponseJson on bank transactions query: {}", responseJsonGet);
 
-        XeroBankTransactionResponseDTO responseDTO = JSON.fromJson(responseJsonGet, XeroBankTransactionResponseDTO.class);
+        XeroBankTransactionResponseData responseDTO = JSON.fromJson(responseJsonGet, XeroBankTransactionResponseData.class);
         responsePayload.setTimeStamp(LocalDateTime.now().toString());
 
         if(responseDTO != null && responseDTO.getBankTransactions() != null){
             responsePayload.setStatus(true);
             responsePayload.setMessage(messageSource.getMessage("messages.request.success", null, Locale.ENGLISH));
-            responsePayload.setData(responseDTO.getBankTransactions());
+            responsePayload.setData(responseDTO);
             return responsePayload;
         }
 
         responsePayload.setStatus(false);
         responsePayload.setMessage(messageSource.getMessage("messages.request.failure", null, Locale.ENGLISH));
-        responsePayload.setData(new ArrayList<>());
+        responsePayload.setData(null);
         return responsePayload;
     }
 
@@ -177,7 +198,7 @@ public class XeroIntegrationServiceImpl implements XeroIntegrationService {
         String completeUrl = fetchTransactions.concat("/").concat(bankTransactionId);
         log.info("Complete query single bank transaction url: {}", completeUrl);
 
-        String responseJsonGet = genericService.getForObject(completeUrl, getXeroAuthHeader());
+        String responseJsonGet = genericService.getForObject(completeUrl, null);
 
         log.info("ResponseJson on bank transactions query: {}", responseJsonGet);
 
@@ -192,7 +213,7 @@ public class XeroIntegrationServiceImpl implements XeroIntegrationService {
         }
 
         responsePayload.setStatus(false);
-        responsePayload.setMessage(messageSource.getMessage("messages.request.failed", null, Locale.ENGLISH));
+        responsePayload.setMessage(messageSource.getMessage("messages.request.failure", null, Locale.ENGLISH));
         responsePayload.setData(responseDTO);
         return responsePayload;
     }

@@ -83,11 +83,11 @@ public class ModelValidator {
 
         if (!errorMessageList.isEmpty()) {
             String completeErrorMessage = String.join(", ", errorMessageList);
-            WayaTransactionResponse errorResponse = new WayaTransactionResponse();
+            WayaTransactionResponse errorResponse = WayaTransactionResponse.builder().build();
             errorResponse.setCode(404);
             errorResponse.setStatus(false);
             errorResponse.setMessage(messageSource.getMessage("messages.request.bad-request", null, Locale.ENGLISH));
-            errorResponse.setData(completeErrorMessage);
+            errorResponse.setData(null);
             validationPayload.setErrorJson(JSON.toJson(errorResponse));
             validationPayload.setHasError(true);
             validationPayload.setExtraItem(null);
