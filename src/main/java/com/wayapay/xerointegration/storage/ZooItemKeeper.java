@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class ZooItemKeeper
 {
-    private static final Map<Item, Object> memoryStorage = new HashMap<>();
+    public static final Map<Item, Object> memoryStorage = new HashMap<>();
 
     public static void saveItem(Item item, Object value){
         memoryStorage.put(item, value);

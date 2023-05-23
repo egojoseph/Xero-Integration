@@ -2,8 +2,10 @@ package com.wayapay.xerointegration.configurations;
 
 import com.google.gson.Gson;
 import com.wayapay.xerointegration.constant.Item;
+import com.wayapay.xerointegration.dto.waya.request.WayaTransactionRequest;
 import com.wayapay.xerointegration.dto.xero.response.AccessTokenResponseDTO;
 import com.wayapay.xerointegration.service.GenericService;
+import com.wayapay.xerointegration.service.XeroIntegrationService;
 import com.wayapay.xerointegration.storage.ZooItemKeeper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +14,15 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
+import org.springframework.kafka.core.KafkaTemplate;
 
+import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Base64;
@@ -38,8 +48,11 @@ public class XeroAuthorizationBootstrap
     private MessageSource messageSource;
     @Autowired
     private GenericService genericService;
-
     private static final Gson JSON = new Gson();
+
+    @Autowired
+    private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
+
 
     @Bean
     public CommandLineRunner xeroAuthorizationRunner(){
@@ -65,6 +78,11 @@ public class XeroAuthorizationBootstrap
             responseDTO.setSafeExpirationDateString(safeExpirationDateTime.toString());
             ZooItemKeeper.saveItem(Item.XERO_AUTH_TOKEN, responseDTO);
             log.info("Xero access token saved to ZooItemKeeper");
+            log.info("Zoo keeper -------->>>> {}", ZooItemKeeper.memoryStorage);
+
+
         });
+
+
     }
 }

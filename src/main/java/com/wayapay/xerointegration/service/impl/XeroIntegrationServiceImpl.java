@@ -100,9 +100,6 @@ public class XeroIntegrationServiceImpl implements XeroIntegrationService {
             }
         }
 
-//
-
-
     }
 
     private XeroUploadRequest createXeroUploadPayload(TransactionData wayaTransactionResponse) {

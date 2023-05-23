@@ -5,11 +5,13 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
@@ -73,4 +75,11 @@ public class AppConfig {
                 .licenseUrl("https://opensource.org/licenses/MIT")
                 .build();
     }
+
+    @Bean
+    public CommandLineRunner commandLineRunner(KafkaTemplate<String, String> kafkaTemplate)  {
+        return args -> kafkaTemplate.send("transactions", "{ \"userId\": \"23434\", \"transactionId\": \"WAYA10018555432\"}");
+
+    }
+
 }

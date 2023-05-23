@@ -74,6 +74,7 @@ public class XeroAuthorizationServiceImpl implements XeroAuthorizationService
         responseDTO.setSafeExpirationDateString(safeExpirationDateTime.toString());
         ZooItemKeeper.saveItem(Item.XERO_AUTH_TOKEN, responseDTO);
         log.info("Xero fresh access token saved to ZooItemKeeper");
+        log.info("Zoo keeper -------->>>> {}", ZooItemKeeper.memoryStorage);
 
         return responseDTO.getAccessToken();
     }
