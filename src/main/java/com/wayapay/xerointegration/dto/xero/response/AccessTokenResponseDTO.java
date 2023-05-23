@@ -25,13 +25,4 @@ public class AccessTokenResponseDTO
     @SerializedName("token_type")
     private String tokenType;
 
-    @SerializedName("id_token")
-    private String idToken;
-
-    @SerializedName("refresh_token")
-    private String refreshToken;
-
-    private String refreshTokenExpirationDateString;
-
-    private String refreshTokenSafeExpirationDateString;
 }
