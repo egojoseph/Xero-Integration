@@ -9,5 +9,4 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Contacts {
     private String ContactID;
-    private String Name;
 }

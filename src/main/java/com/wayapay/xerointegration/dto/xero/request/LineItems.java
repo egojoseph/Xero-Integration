@@ -12,7 +12,6 @@ import java.util.List;
 public class LineItems {
 
     private String Description;
-    private String Quantity;
     private String UnitAmount;
     private String AccountCode;
     private List<Tracking> Tracking;

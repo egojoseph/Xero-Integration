@@ -1,7 +1,9 @@
+server:
+  port: 8991
 
 spring:
   kafka:
-    bootstrap-servers: http://localhost:9092  #http://kafka-service:9092
+    bootstrap-servers: http://localhost:9092 #http://kafka-service:9092
     consumer:
       group-id: waya
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -14,8 +16,8 @@ xero:
   fetch:
     transactions: https://api.xero.com/api.xro/2.0/BankTransactions
   token-url: https://identity.xero.com/connect/token
-  client-id: 2E5FA877851A4E74ADF1D32710A66AF9 #6E65088E1C844314B2EBB25B35BF4E7E #BD70F172FA204D87B644066E1D1A13CE
-  client-secret: 027YjriLY6w8TPRgVwhoHu70ixylpa7zETVguHEINK2xHrGR #RvQv2bC4XRP6snUsSNgM_uCxnSLvcPvuq6v7QteXNoxF2qlT #_LxvEU0Bus3dvgH-xXEa2S6akn9JAOZ7MBVOKkTNuJZOMweF
+  client-id: BD70F172FA204D87B644066E1D1A13CE #2E5FA877851A4E74ADF1D32710A66AF9 #6E65088E1C844314B2EBB25B35BF4E7E #BD70F172FA204D87B644066E1D1A13CE
+  client-secret: _LxvEU0Bus3dvgH-xXEa2S6akn9JAOZ7MBVOKkTNuJZOMweF #027YjriLY6w8TPRgVwhoHu70ixylpa7zETVguHEINK2xHrGR #RvQv2bC4XRP6snUsSNgM_uCxnSLvcPvuq6v7QteXNoxF2qlT
   grant-type: client_credentials
   scope: accounting.transactions
 
