@@ -79,7 +79,7 @@ public class XeroIntegrationServiceImpl implements XeroIntegrationService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        headers.set("Authorization", "token to be gotten from xero"); // TODO: 21/05/2023 get token for post to Xero
+        headers.set("Authorization", "Bearer "+authorizationService.getXeroAccessToken());
 
         XeroUploadRequest xeroUploadRequest = createXeroUploadPayload(wayaTransactionResponse);
 
@@ -222,5 +222,4 @@ public class XeroIntegrationServiceImpl implements XeroIntegrationService {
         log.info("Xero Auth header: {}", headers);
         return headers;
     }
-
 }
