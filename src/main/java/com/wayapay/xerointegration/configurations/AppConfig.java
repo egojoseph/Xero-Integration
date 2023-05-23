@@ -56,7 +56,7 @@ public class AppConfig {
     // Swagger Configurations
     @Bean
     public Docket api() {
-        return new Docket(DocumentationType.SWAGGER_12)
+        return new Docket(DocumentationType.OAS_30)
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("com.wayapay.xerointegration.controller"))
                 .paths(PathSelectors.any())
