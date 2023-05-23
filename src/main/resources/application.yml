@@ -3,7 +3,7 @@ server:
 
 spring:
   kafka:
-    bootstrap-servers: http://localhost:9092 #http://kafka-service:9092
+    bootstrap-servers: http://kafka-service:9092 #http://localhost:9092
     consumer:
       group-id: waya
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
