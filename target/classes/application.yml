@@ -17,8 +17,8 @@ xero:
   fetch:
     transactions: https://api.xero.com/api.xro/2.0/BankTransactions
   token-url: https://identity.xero.com/connect/token
-  client-id: 2E5FA877851A4E74ADF1D32710A66AF9 #BD70F172FA204D87B644066E1D1A13CE
-  client-secret: 027YjriLY6w8TPRgVwhoHu70ixylpa7zETVguHEINK2xHrGR  #_LxvEU0Bus3dvgH-xXEa2S6akn9JAOZ7MBVOKkTNuJZOMweF
+  client-id: 70B11893A5F44A89B181B8F7748C5C74  #2E5FA877851A4E74ADF1D32710A66AF9
+  client-secret: 7aKLX3yckt3rtceYnp8WnOsSo3VrZpXlnos15t2EEidKwSoJ  #027YjriLY6w8TPRgVwhoHu70ixylpa7zETVguHEINK2xHrGR
   grant-type: client_credentials
   scope: accounting.transactions
 
