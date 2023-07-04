@@ -50,9 +50,6 @@ public class XeroAuthorizationBootstrap
     private GenericService genericService;
     private static final Gson JSON = new Gson();
 
-    @Autowired
-    private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
-
 
     @Bean
     public CommandLineRunner xeroAuthorizationRunner(){
@@ -79,8 +76,6 @@ public class XeroAuthorizationBootstrap
             ZooItemKeeper.saveItem(Item.XERO_AUTH_TOKEN, responseDTO);
             log.info("Xero access token saved to ZooItemKeeper");
             log.info("Zoo keeper -------->>>> {}", ZooItemKeeper.memoryStorage);
-
-
         });
 
 

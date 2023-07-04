@@ -5,14 +5,8 @@ import com.wayapay.xerointegration.dto.waya.request.WayaTransactionRequest;
 import com.wayapay.xerointegration.service.XeroIntegrationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.config.KafkaListenerEndpointRegistrar;
-import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -29,7 +23,7 @@ public class KafkaListeners {
 
     private static final Gson JSON = new Gson();
 
-    @KafkaListener(topics = "transactions", groupId = "waya", id = "4", autoStartup = "false")
+    @KafkaListener(topics = "transactions", groupId = "waya")
     public void listener(String data) throws URISyntaxException, IOException {
         log.info("<<<----------------Listener received------------------>>>: " + data);
         WayaTransactionRequest transaction = JSON.fromJson(data, WayaTransactionRequest.class);
