@@ -75,11 +75,4 @@ public class AppConfig {
                 .licenseUrl("https://opensource.org/licenses/MIT")
                 .build();
     }
-
-//    @Bean
-//    public CommandLineRunner commandLineRunner(KafkaTemplate<String, String> kafkaTemplate)  {
-//        return args -> kafkaTemplate.send("transactions", "{ \"userId\": \"23434\", \"transactionId\": \"WAYA10018555432\"}");
-//
-//    }
-
 }

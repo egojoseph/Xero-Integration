@@ -73,8 +73,8 @@ public class XeroIntegrationServiceImpl implements XeroIntegrationService {
         return new ObjectMapper().readValue(result.getBody(), UploadJournalResponse.class);
     }
 
-
-    public WayaTransactionResponse getTransactionFromWaya(WayaTransactionRequest wayaTransactionRequest) throws URISyntaxException, IOException {
+    @Override
+    public WayaTransactionResponse getTransactionFromWaya(WayaTransactionRequest wayaTransactionRequest) throws JsonProcessingException, URISyntaxException {
         String url = wayaTransaction+wayaTransactionRequest.getTransactionId();
 
         HttpHeaders headers = new HttpHeaders();
@@ -86,7 +86,6 @@ public class XeroIntegrationServiceImpl implements XeroIntegrationService {
         uploadToXero(response);
         return response;
     }
-
 
 
     public void uploadToXero(WayaTransactionResponse wayaTransactionResponse) throws URISyntaxException, JsonProcessingException {
