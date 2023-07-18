@@ -76,10 +76,10 @@ public class AppConfig {
                 .build();
     }
 
-    @Bean
-    public CommandLineRunner commandLineRunner(KafkaTemplate<String, String> kafkaTemplate)  {
-        return args -> kafkaTemplate.send("transactions", "{ \"userId\": \"23434\", \"transactionId\": \"WAYA10018555432\"}");
-
-    }
+//    @Bean
+//    public CommandLineRunner commandLineRunner(KafkaTemplate<String, String> kafkaTemplate)  {
+//        return args -> kafkaTemplate.send("transactions", "{ \"userId\": \"23434\", \"transactionId\": \"WAYA10018555432\"}");
+//
+//    }
 
 }

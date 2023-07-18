@@ -5,10 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 
 @Data
-@Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Tracking {
-
     public String Name;
     public String Option;
+    public String TrackingCategoryID;
+    public String TrackingOptionID;
+
+    public Tracking(String name, String option) {
+        Name = name;
+        Option = option;
+    }
 }

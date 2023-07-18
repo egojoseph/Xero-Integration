@@ -11,7 +11,6 @@ import com.wayapay.xerointegration.dto.xero.response.*;
 import com.wayapay.xerointegration.service.GenericService;
 import com.wayapay.xerointegration.service.XeroAuthorizationService;
 import com.wayapay.xerointegration.service.XeroIntegrationService;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,21 +22,17 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class XeroIntegrationServiceImpl implements XeroIntegrationService {
 
-    @Value("${xero.upload.transactions}")
-    private String uploadTransaction;
+    @Value("${xero.upload.journal}")
+    private String uploadJournal;
 
-    @Value("${xero.fetch.transactions}")
-    private String fetchTransactions;
+    @Value("${xero.fetch.journal}")
+    private String fetchJournal;
 
     @Value("${waya.transaction}")
     private String wayaTransaction;
@@ -46,20 +41,39 @@ public class XeroIntegrationServiceImpl implements XeroIntegrationService {
     private String wayaToken;
 
     @Autowired
-    private GenericService genericService;
-
-    @Autowired
-    private MessageSource messageSource;
-
-    @Autowired
     private XeroAuthorizationService xeroAuthorizationService;
 
     @Autowired
     private RestTemplate restTemplate;
 
-    private static final Gson JSON = new Gson();
+    @Override
+    public XeroJournalResponsePayload getJournalTransaction() throws JsonProcessingException {
+
+        String accessToken = xeroAuthorizationService.getXeroAccessToken();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + accessToken);
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+        ResponseEntity<String> result = restTemplate.exchange(fetchJournal, HttpMethod.GET, requestEntity, String.class);
+        log.info("result ----->>>> {}", result.getBody());
+        return new ObjectMapper().readValue(result.getBody(), XeroJournalResponsePayload.class);
+
+    }
 
     @Override
+    public UploadJournalResponse uploadJournalTransaction(XeroManualJournalUploadRequest xeroManualJournalUploadRequest) throws JsonProcessingException {
+        String accessToken = xeroAuthorizationService.getXeroAccessToken();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + accessToken);
+
+        String requestBodyJson = new ObjectMapper().writeValueAsString(xeroManualJournalUploadRequest);
+        HttpEntity<String> requestEntity = new HttpEntity<>(requestBodyJson, headers);
+
+        ResponseEntity<String> result = restTemplate.exchange(uploadJournal, HttpMethod.POST, requestEntity, String.class);
+        return new ObjectMapper().readValue(result.getBody(), UploadJournalResponse.class);
+    }
+
+
     public WayaTransactionResponse getTransactionFromWaya(WayaTransactionRequest wayaTransactionRequest) throws URISyntaxException, IOException {
         String url = wayaTransaction+wayaTransactionRequest.getTransactionId();
 
@@ -69,161 +83,39 @@ public class XeroIntegrationServiceImpl implements XeroIntegrationService {
         ResponseEntity<String> result = restTemplate.exchange(url,HttpMethod.GET, requestEntity, String.class);
 
         WayaTransactionResponse response = new ObjectMapper().readValue(result.getBody(), WayaTransactionResponse.class);
-        log.info("response after mapping ------>>> {}", response);
         uploadToXero(response);
         return response;
     }
 
+
+
     public void uploadToXero(WayaTransactionResponse wayaTransactionResponse) throws URISyntaxException, JsonProcessingException {
         log.info("now trying to upload to xero");
-        String xeroUpload = uploadTransaction;
-        URI uri = new URI(xeroUpload);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        headers.set("Authorization", "Bearer "+xeroAuthorizationService.getXeroAccessToken());
-
         for (TransactionData response : wayaTransactionResponse.getData()) {
-            XeroUploadRequest xeroUploadRequest = createXeroUploadPayload(response);
-
-            HttpEntity<XeroUploadRequest> entity = new HttpEntity<>(xeroUploadRequest, headers);
-            ResponseEntity<String> result = restTemplate.postForEntity(uri, entity, String.class);
-            log.info("response code is -----> {} and response body is ------->>> {}", result.getStatusCode().value(), result.getBody());
-            if (result.getStatusCode().is2xxSuccessful()) {
-                XeroBankTransactionResponsePayload responsePayload = new ObjectMapper().readValue(result.getBody(), XeroBankTransactionResponsePayload.class);
-                log.info("response payload --------->>>>> {}", responsePayload);
-            }
-            else {
-                XeroBankTransactionResponsePayload responsePayload = new ObjectMapper().readValue(result.getBody(), XeroBankTransactionResponsePayload.class);
-                log.info("error response ---->> {}", responsePayload);
-            }
+            XeroManualJournalUploadRequest xeroUploadRequest = createXeroUploadPayload(response);
+            uploadJournalTransaction(xeroUploadRequest);
         }
-
     }
 
-    private XeroUploadRequest createXeroUploadPayload(TransactionData wayaTransactionResponse) {
-        List<LineItems> lineItemsList = new ArrayList<>();
-        List<Tracking> trackingList = new ArrayList<>();
+    private XeroManualJournalUploadRequest createXeroUploadPayload(TransactionData wayaResponse) {
 
-        Tracking tracking = Tracking.builder().Name("Activity/Workstream").Option("Website management").build();
-        trackingList.add(tracking);
+        JournalLine journalLineCredit = JournalLine.builder().description("").lineAmount(0).accountCode("")
+                .taxType("").tracking(Collections.singletonList(new Tracking("Region", "West"))).build();
 
-        LineItems lineItem = LineItems.builder().Description(wayaTransactionResponse.tranNarrate)
-                .AccountCode(String.valueOf(wayaTransactionResponse.relatedTransId))
-                .UnitAmount(String.valueOf(wayaTransactionResponse.tranAmount))
-                .Tracking(trackingList).build();
-        lineItemsList.add(lineItem);
-        Contacts contacts = Contacts.builder().ContactID(wayaTransactionResponse.tranId).build();
-        BankAccount bankAccount = BankAccount.builder().Code(wayaTransactionResponse.tranGL).build();
+        JournalLine journalLineDebit = JournalLine.builder().description("").lineAmount(0).accountCode("")
+                .taxType("").tracking(Collections.singletonList(new Tracking("Region", "West"))).build();
 
-        XeroUploadRequest uploadRequest = XeroUploadRequest.builder().Type("RECEIVE").Contact(contacts)
-                .BankAccount(bankAccount).LineAmountTypes("Inclusive").LineItems(lineItemsList)
-                .Url("http://www.accounting20.com").build();
-        log.info("xero upload request ----->>>> {}", uploadRequest);
+        List<JournalLine> journalLineList = new ArrayList<>();
+        journalLineList.add(journalLineCredit);
+        journalLineList.add(journalLineDebit);
 
-        return uploadRequest;
+        XeroManualJournalUploadRequest xeroManualJournalUploadRequest = XeroManualJournalUploadRequest.builder()
+                .date(wayaResponse.getTranDate()).status("").narration(wayaResponse.getTranNarrate())
+                .lineAmountTypes("").journalLines(journalLineList).showOnCashBasisReports("false").build();
+        log.info("Xero Manual Journal Upload Request ----->>>> {}", xeroManualJournalUploadRequest);
+        return xeroManualJournalUploadRequest;
     }
 
-    @Override
-    public XeroBankTransactionResponsePayload getTransactions(XeroBankTransactionRequestPayload requestPayload){
-        XeroBankTransactionResponsePayload responsePayload = new XeroBankTransactionResponsePayload();
-
-        List<Param> filters = requestPayload.getFilters();
-        filters = filters.stream()
-                .filter(f -> f.getParamName() != null && f.getParamValue() != null)
-                .collect(Collectors.toList());
-
-        String baseUrl;
-        if(!filters.isEmpty()){
-            baseUrl = fetchTransactions.concat("?where=");
-            StringJoiner stringJoiner = new StringJoiner("&");
-            filters.forEach(filter -> {
-                String paramName = filter.getParamName();
-                String paramValue = filter.getParamValue();
-                String toEncodePart = "==".concat("\""+ paramValue + "\"");
-
-                String filterQuery;
-                filterQuery = paramName.concat(URLEncoder.encode(toEncodePart, StandardCharsets.UTF_8));
-                stringJoiner.add(filterQuery);
-            });
-            baseUrl = baseUrl.concat(stringJoiner.toString());
-        }else{
-            baseUrl = fetchTransactions;
-        }
-
-        String completeQuery;
-        if(requestPayload.getPage() > 0) {
-            if (!filters.isEmpty()) {
-                completeQuery = baseUrl.concat("&").concat("page=")
-                        .concat(String.valueOf(requestPayload.getPage()));
-            } else {
-                completeQuery = baseUrl.concat("?").concat("page=")
-                        .concat(String.valueOf(requestPayload.getPage()));
-            }
-        }
-        else{
-            completeQuery = baseUrl;
-        }
-
-        log.info("Complete Bank transactions query url: {}", completeQuery);
-
-        String responseJsonGet = genericService.getForObject(completeQuery, getXeroAuthHeader());
-
-        log.info("ResponseJson on bank transactions query: {}", responseJsonGet);
-
-        XeroBankTransactionResponseData responseDTO;
-        try{
-            responseDTO = JSON.fromJson(responseJsonGet, XeroBankTransactionResponseData.class);
-            responsePayload.setTimeStamp(LocalDateTime.now().toString());
-        }catch (Exception e){
-            responseDTO = null;
-            responsePayload.setMessage(responseJsonGet);
-        }
-
-        if(responseDTO != null && responseDTO.getBankTransactions() != null){
-            responsePayload.setStatus(true);
-            responsePayload.setMessage(messageSource.getMessage("messages.request.success", null, Locale.ENGLISH));
-            responsePayload.setData(responseDTO);
-            return responsePayload;
-        }
-
-        responsePayload.setStatus(false);
-        responsePayload.setData(responseDTO);
-        return responsePayload;
-    }
-
-    @Override
-    public XeroSingleBankTransactionResponsePayload getSingleBankTransaction(@NonNull String bankTransactionId){
-        XeroSingleBankTransactionResponsePayload responsePayload = new XeroSingleBankTransactionResponsePayload();
-
-        String completeUrl = fetchTransactions.concat("/").concat(bankTransactionId);
-        log.info("Complete query single bank transaction url: {}", completeUrl);
-
-        String responseJsonGet = genericService.getForObject(completeUrl, getXeroAuthHeader());
-
-        log.info("ResponseJson on bank transactions query: {}", responseJsonGet);
-
-        XeroBankTransaction responseDTO;
-        try{
-            responseDTO = JSON.fromJson(responseJsonGet, XeroBankTransaction.class);
-            responsePayload.setTimeStamp(LocalDateTime.now().toString());
-        }catch (Exception exception){
-            responseDTO = null;
-            responsePayload.setMessage(responseJsonGet);
-        }
-
-        if(responseDTO != null && responseDTO.getReference() != null){
-            responsePayload.setStatus(true);
-            responsePayload.setMessage(messageSource.getMessage("messages.request.success", null, Locale.ENGLISH));
-            responsePayload.setData(responseDTO);
-            return responsePayload;
-        }
-
-        responsePayload.setStatus(false);
-        responsePayload.setData(responseDTO);
-        return responsePayload;
-    }
 
     private Map<String, String> getXeroAuthHeader(){
         String accessToken = xeroAuthorizationService.getXeroAccessToken();

@@ -13,16 +13,14 @@ spring:
     allow-bean-definition-overriding: true
 xero:
   upload:
-    transactions: https://api.xero.com/api.xro/2.0/BankTransactions
+    journal: https://api.xero.com/api.xro/2.0/ManualJournals
   fetch:
-    transactions: https://api.xero.com/api.xro/2.0/BankTransactions
+    journal: https://api.xero.com/api.xro/2.0/ManualJournals
   token-url: https://identity.xero.com/connect/token
-  client-id: 70B11893A5F44A89B181B8F7748C5C74  #2E5FA877851A4E74ADF1D32710A66AF9
-  client-secret: 7aKLX3yckt3rtceYnp8WnOsSo3VrZpXlnos15t2EEidKwSoJ  #027YjriLY6w8TPRgVwhoHu70ixylpa7zETVguHEINK2xHrGR
+  client-id: 58DF5099FB964BD9A51314D47CF4C89C  #2E5FA877851A4E74ADF1D32710A66AF9
+  client-secret: NjsgJjBRnG9SDKzkbB9lR9VMA8y_WSzqAAsCAfOZYMLsPkMV  #027YjriLY6w8TPRgVwhoHu70ixylpa7zETVguHEINK2xHrGR
   grant-type: client_credentials
   scope: accounting.transactions
-
-
 
 waya:
   transaction: https://services.staging.wayabank.ng/temporal-service/api/v1/wallet/account/transactions/
