@@ -3,7 +3,7 @@ server:
 
 spring:
   kafka:
-    bootstrap-servers: http://kafka-service:9092
+    bootstrapServers: http://localhost:9092
     consumer:
       group-id: xerointegration
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
