@@ -19,12 +19,15 @@ import java.net.URISyntaxException;
 @EnableKafka
 public class KafkaListeners {
 
+    private final static String CONSUMER_GROUP_ID = "xerointegration";
+    private final static String TOPIC_NAME = "transactions";
+
     @Autowired
     private  XeroIntegrationService xeroIntegrationService;
 
     private static final Gson JSON = new Gson();
 
-    @KafkaListener(topics = "transactions", groupId = "waya")
+    @KafkaListener(topics = TOPIC_NAME, groupId = CONSUMER_GROUP_ID)
     public void listener(String data) throws URISyntaxException, JsonProcessingException {
         log.info("<<<----------------Listener received------------------>>>: " + data);
         WayaTransactionRequest transaction = JSON.fromJson(data, WayaTransactionRequest.class);
